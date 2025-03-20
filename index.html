@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		.keyboard {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			margin: 20px;
+		}
+
+		.row {
+			display: flex;
+			gap: 2px;
+		}
+
+		.key {
+			width: 40px;
+			height: 40px;
+			text-align: center;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		.text-input {
+			margin: 20px;
+			padding: 8px;
+			font-size: 18px;
+			width: 100%;
+		}
+
+		.key.active {
+			background-color: #007bff;
+			color: white;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="keyboard" class="keyboard">
+		<div class="row">
+			<button class="key">Q</button>
+			<button class="key">W</button>
+			<button class="key">E</button>
+			<button class="key">R</button>
+			<button class="key">T</button>
+			<button class="key">Y</button>
+			<button class="key">U</button>
+			<button class="key">I</button>
+			<button class="key">O</button>
+			<button class="key">P</button>
+		</div>
+		<!-- Repeat for other rows -->
+	</div>
+	<input type="text" id="textInput" class="text-input" />
+</body>
+<script>
+	const keyboard = document.getElementById('keyboard');
+	const textInput = document.getElementById('textInput');
+	let path = [];
+	let currentWord = '';
+	let isSwiping = false;
+
+	// Start Gesture
+	keyboard.addEventListener('mousedown', (e) => startSwipe(e));
+	keyboard.addEventListener('touchstart', (e) => startSwipe(e));
+
+	// Move Gesture
+	keyboard.addEventListener('mousemove', (e) => trackSwipe(e));
+	keyboard.addEventListener('touchmove', (e) => trackSwipe(e));
+
+	// End Gesture
+	keyboard.addEventListener('mouseup', endSwipe);
+	keyboard.addEventListener('mouseleave', endSwipe);
+	keyboard.addEventListener('touchend', endSwipe);
+
+	function startSwipe(e) {
+		isSwiping = true;
+		path = [];
+		const key = getKeyFromEvent(e);
+		if (key) {
+			path.push(key.innerText);
+			key.classList.add('active');
+		}
+	}
+
+	function trackSwipe(e) {
+		if (!isSwiping) return;
+		const key = getKeyFromEvent(e);
+		if (key && !path.includes(key.innerText)) {
+			path.push(key.innerText);
+			key.classList.add('active');
+		}
+	}
+
+	function endSwipe() {
+		isSwiping = false;
+		const word = recognizeWord(path);
+		textInput.value += word + ' ';
+		clearActiveKeys();
+		path = [];
+	}
+
+	function getKeyFromEvent(e) {
+		const element = document.elementFromPoint(
+			e.clientX || e.touches[0].clientX,
+			e.clientY || e.touches[0].clientY
+		);
+		return element && element.classList.contains('key') ? element : null;
+	}
+
+	function clearActiveKeys() {
+		document.querySelectorAll('.key.active').forEach(key => key.classList.remove('active'));
+	}
+	function recognizeWord(path) {
+		// Simple word prediction logic (can be replaced with a more advanced model)
+		const wordDictionary = ['HELLO', 'WORLD', 'TEST', 'KEYBOARD', 'SWIPE'];
+		const gestureWord = path.join('');
+
+		let bestMatch = '';
+		let maxMatchLength = 0;
+
+		wordDictionary.forEach(word => {
+			let matchLength = 0;
+			for (let i = 0; i < gestureWord.length && i < word.length; i++) {
+				if (gestureWord[i] === word[i]) matchLength++;
+			}
+			if (matchLength > maxMatchLength) {
+				maxMatchLength = matchLength;
+				bestMatch = word;
+			}
+		});
+
+		return bestMatch;
+	}
+
+</script>
+
+</html>
